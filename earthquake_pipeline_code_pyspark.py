@@ -1,3 +1,19 @@
+################################################################################################
+"""
+file_name - extract_data_from_api.py
+desc - Main script for extracting data from an API, processing it, and writing to GCS and BigQuery.
+       This script performs the following operations:
+       - Initializes a Spark session with configurations.
+       - Extracts data from a specified API URL.
+       - Writes the extracted data to a landing location in GCS in Parquet format.
+       - Reads the Parquet file from GCS for further processing.
+       - Extracts required fields, flattens the data, and applies necessary transformations.
+       - Writes the cleaned data to a silver location in GCS in Parquet format.
+       - Loads the cleaned data into a specified BigQuery table.
+
+start_date - 2024-10-21
+"""
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp, col, explode, struct, to_timestamp, from_unixtime, expr
 from datetime import datetime
@@ -5,7 +21,7 @@ import argparse
 import requests
 import logging
 import  json
-from util import Utils
+from utility import Utils
 import config as cnf
 
 

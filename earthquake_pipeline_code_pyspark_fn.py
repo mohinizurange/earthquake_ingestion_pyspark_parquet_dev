@@ -1,3 +1,22 @@
+################################################################################################
+"""
+file_name - extract_earthquake_data_pipeline.py
+desc - Main script for executing the Earthquake Data Extraction and Transformation pipeline.
+       This script performs the following operations:
+       - Configures logging for tracking pipeline execution.
+       - Initializes a Spark session with necessary configurations.
+       - Creates an instance of the Utils class
+       - Parses command-line arguments for API URL and pipeline name.
+       - Executes a series of functions to:
+         1. Extract data from the specified API.
+         2. Write the extracted data to a landing location in GCS in Parquet format.
+         3. Read the Parquet file from GCS.
+         4. Extract and transform the required data by flattening it.
+         5. Write the cleaned data to a silver location in GCS in Parquet format.
+         6. Load the cleaned data into a specified BigQuery table.
+
+start_date - 2024-10-21
+"""
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import current_timestamp, col, explode, struct, to_timestamp, from_unixtime, expr
 from datetime import datetime
@@ -5,10 +24,30 @@ import argparse
 import requests
 import logging
 import  json
-from util import Utils
+from utility import Utils
 import config as cnf
 
 def earthqueake_pipeline():
+    def earthqueake_pipeline():
+        """
+        Executes an ETL pipeline for earthquake data extraction, transformation,
+        and loading using Apache Spark.
+
+        Steps:
+        1. Extracts data from a specified API into a Spark DataFrame.
+        2. Writes the data to GCS in Parquet format.
+        3. Reads the Parquet file from GCS.
+        4. Flattens and transforms the data.
+        5. Writes cleaned data to GCS (silver location).
+        6. Loads the cleaned data into a BigQuery table.
+
+        Command-line arguments:
+        - api_url: API URL for data extraction.
+        - pipeline_nm: Name of the pipeline.
+
+        Logs the start and end times, status, and processed records for each step.
+        Raises exceptions on failure.
+        """
     # Configure logging
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 

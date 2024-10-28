@@ -1,16 +1,45 @@
+################################################################################################
+"""
+file_name - utility.py
+desc - Utility class for handling various tasks related to data processing, including:
+       - Fetching data from APIs
+       - Writing and reading Parquet files in Google Cloud Storage (GCS)
+       - Flattening and processing data
+       - Loading processed data into BigQuery tables
+       - Logging job execution details into an audit table in BigQuery
+
+start_date - 2024-10-21
+"""
+
 import logging
 from pyspark.sql.functions import current_timestamp, col, explode, struct, to_timestamp, from_unixtime, expr
 from pyspark.sql.types import StructType, StructField, IntegerType, StringType
 from pyspark.sql import Row
-
-
 from datetime import datetime
 import json
 import requests
 
 class Utils():
+    """
+    A utility class for data extraction, transformation, loading, and audit logging.
+    Contains functions for:
+    - Extracting data from an API.
+    - Writing and reading Parquet files in Google Cloud Storage (GCS).
+    - Flattening, transforming, and cleaning data for processing.
+    - Defining schemas for BigQuery tables.
+    - Logging job execution details into an audit table in BigQuery for monitoring
+    """
 
     def extractallData(self,api_url):
+        """
+                Extracts data from an API and returns it as a JSON string.
+
+                Parameters:
+                    api_url (str): The API URL to extract data from.
+
+                Returns:
+                    str or None: JSON string of extracted data if successful, None otherwise.
+        """
         ## by using get method extract the data from api
         response = requests.get(api_url)
 
@@ -27,10 +56,31 @@ class Utils():
             return None
 
     def writeParquetDataintoGCS(self,spark, source_data_df, gcs_location):
+        """
+            Writes a DataFrame as a Parquet file to a specified GCS location.
+
+            Parameters:
+                spark (SparkSession): The Spark session.
+                source_data_df (DataFrame): The DataFrame to write to GCS.
+                gcs_location (str): The GCS path where data will be written.
+
+            Returns:
+                None
+        """
         source_data_df.coalesce(2).write.mode("overwrite").parquet(gcs_location)
         logging.info(f"Data written to {gcs_location}")
 
     def readParquetFilefromGCS(self,spark, source_data_loc):
+        """
+                Reads a Parquet file from GCS and returns it as a DataFrame.
+
+                Parameters:
+                    spark (SparkSession): The Spark session.
+                    source_data_loc (str): The GCS location of the Parquet file to read.
+
+                Returns:
+                    DataFrame: A Spark DataFrame containing the data read from GCS.
+        """
 
         ## read data from gcs
         src_raw_data_df = spark.read.parquet(source_data_loc)
@@ -38,6 +88,15 @@ class Utils():
         return src_raw_data_df
 
     def extractReqDataFlattenApplyTrans(self,raw_data_df):
+        """
+                Flattens nested JSON data, extracts specific fields, and applies transformations.
+
+                Parameters:
+                    raw_data_df (DataFrame): The raw input DataFrame with nested JSON data.
+
+                Returns:
+                    DataFrame: A transformed DataFrame with flattened, cleaned, and formatted data.
+        """
 
         # using expoad flatten features
         flattened_feature_df = raw_data_df.select(explode("features").alias("feature"))
@@ -81,11 +140,12 @@ class Utils():
 
     def bqSchema(self):
         """
-                Defines the schema for BigQuery.
+                 Defines the schema for BigQuery.
 
                 Returns:
-                    list: A list of dictionaries representing the BigQuery schema.
-                """
+                    dict: A dictionary representing the schema for BigQuery.
+        """
+
         # Define the schema with mode
         bq_schema = {
             "fields": [
@@ -133,13 +193,14 @@ class Utils():
                 Writes data from a DataFrame to a specified BigQuery table.
 
                 Parameters:
-                    output_db (str): The target BigQuery table in the format 'project_id.dataset_id.table_id'.
+                    output_db (str): BigQuery table path in format 'project_id.dataset_id.table_id'.
                     data_df (DataFrame): The DataFrame containing the data to be written.
-                    bq_schema (list, optional): The schema for the BigQuery table. If None, the schema will be fetched using the bqSchema method.
+                    bq_schema (dict, optional): BigQuery schema. If None, uses self.bqSchema().
 
                 Returns:
                     None
-        """
+                """
+
         if bq_schema is None:
             # call function bqSchema to get bq schema
             bq_schema = self.bqSchema()
@@ -153,6 +214,7 @@ class Utils():
 
     def createDFforAuditTbl(self,spark_1, job_id, pipeline_name, function_name, start_time, end_time, status,error_msg,
                             process_record=0):
+
         """
                 Creates a DataFrame for audit logs with job execution details.
 
