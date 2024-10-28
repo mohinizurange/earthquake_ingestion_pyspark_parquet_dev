@@ -58,8 +58,8 @@ with DAG(
                         --cluster=dataproc-cluster \
                         --region=us-central1 \
                         -- \
-                        --api_url="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson" \
-                        --pipeline_nm='daily' """
+                        --api_url="https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson" \
+                        --pipeline_nm='Monthly' """
 
                                    )
 

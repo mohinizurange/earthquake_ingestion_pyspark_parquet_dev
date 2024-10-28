@@ -19,7 +19,7 @@ default_args = {'owner':'M_Airflow',
                }
 # Define DAG
 with DAG(
-    'Earthquake_daily_dataload',
+    'Earthquake_daily_dataload_schedule',
     default_args=default_args,
     schedule_interval='0 10 * * *',  # This sets the DAG to run daily at 10 AM
     catchup=False,
